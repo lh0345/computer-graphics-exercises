@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.163.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.163.0/examples/jsm/controls/OrbitControls.js';
+import GUI from 'https://unpkg.com/lil-gui@0.18.0/dist/lil-gui.esm.min.js';
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -76,6 +77,31 @@ scene.add(pointLight);
 // Helper small ambient
 const ambient = new THREE.AmbientLight(0x404040, 0.6);
 scene.add(ambient);
+
+// GUI controls
+const gui = new GUI({ width: 300 });
+const lightFolder = gui.addFolder('Lights');
+const params = {
+  directionalIntensity: dirLight.intensity,
+  pointIntensity: pointLight.intensity,
+  ambientIntensity: ambient.intensity,
+  shadows: true,
+  background: '#20232a'
+};
+
+lightFolder.add(params, 'directionalIntensity', 0, 2, 0.01).name('Directional').onChange(v => dirLight.intensity = v);
+lightFolder.add(params, 'pointIntensity', 0, 2, 0.01).name('Point').onChange(v => pointLight.intensity = v);
+lightFolder.add(params, 'ambientIntensity', 0, 2, 0.01).name('Ambient').onChange(v => ambient.intensity = v);
+lightFolder.add(params, 'shadows').name('Shadows').onChange(enabled => {
+  renderer.shadowMap.enabled = enabled;
+  dirLight.castShadow = enabled;
+  pointLight.castShadow = enabled;
+  [box, sphere, knot].forEach(m => m.castShadow = enabled);
+  floor.receiveShadow = enabled;
+});
+lightFolder.open();
+
+gui.addColor(params, 'background').name('BG Color').onChange(hex => scene.background.set(hex));
 
 // Shadows
 renderer.shadowMap.enabled = true;
